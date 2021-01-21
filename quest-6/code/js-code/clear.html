@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Success</title>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+    <!-- Return to main page -->
+    <script>  // https://www.quora.com/What-is-the-simplest-way-to-make-an-HTML-button-communicate-with-a-Node-js-server
+      $("form").submit(function(e) { 
+        e.preventDefault(); 
+        $.ajax({ 
+          url: "/", 
+          data: {...}, 
+          //type: "GET", // if you want to send data via the "data" property change this to "POST". This can be omitted otherwise 
+          success: function(responseData) { 
+          }, 
+          error: console.error 
+        }); 
+      });
+    </script>
+
+    <!-- Fake script lol -->
+    <script type="text/javascript">
+    	
+    	/* Function to pretend to do stuff */
+    	function pretend(){
+    		// setTimeout(function(){ alert("Alert cleared."); }, 3000);
+    		alert("Alert cleared.");
+    	}
+
+    </script>
+
+</head>
+<body>
+	<header>
+		<h2>Alert page</h2>
+		<p>Please clear the alert with the button below. Return to main page when alert is clear.</p>
+		<button onclick="pretend()">Clear alert</button>
+
+
+		<form action="/"> 
+          <button>Return to main page</button> 
+        </form>
+	</header>
+
+</body>
+</html>

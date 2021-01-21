@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Remote Motor Control</title>
+
+    <script> 	// https://www.quora.com/What-is-the-simplest-way-to-make-an-HTML-button-communicate-with-a-Node-js-server
+      $("form").submit(function(e) { 
+        e.preventDefault(); 
+        $.ajax({ 
+          url: "/my-url?q=1", 
+          data: {...}, 
+          //type: "GET", // if you want to send data via the "data" property change this to "POST". This can be omitted otherwise 
+          success: function(responseData) { 
+          }, 
+          error: console.error 
+        }); 
+      }); 
+    </script>
+    
+  </head>
+    <body>
+        <br/>
+        <form action="/my-url"> 
+          <button>Start/Stop</button> 
+        </form>
+    </body>
+</html>

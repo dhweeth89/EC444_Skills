@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Live Sensor Data</title>
+	<script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	<script type="text/javascript">
+		window.onload = function(){
+
+			/* Global variables to hold sensor readings */
+			var tempPoints = [];
+			var xPoints = [];
+			var yPoints = [];
+			var zPoints = [];
+			var rollPoints = [];
+			var pitchPoints = [];
+
+			var dataLength = 60;		// Number of points visible at any one time 		https://canvasjs.com/javascript-charts/dynamic-spline-chart/
+
+			/* Receive data from server */
+			function doPoll(){
+				$.get("/data", function(data){
+					//console.log(data);	// log to browser console for debugging
+
+					/* Parse data */
+					for(var i=0; i<data.length; i++){
+						tempPoints.push({
+							x: i,									// Second since server creation
+							y: parseFloat(data[i].Temperature)		// Thermistor reading
+						});
+						xPoints.push({
+							x: i,									// Second since server creation
+							y: parseFloat(data[i].AccelX)		// Thermistor reading
+						});
+						yPoints.push({
+							x: i,									// Second since server creation
+							y: parseFloat(data[i].AccelY)		// Thermistor reading
+						});
+						zPoints.push({
+							x: i,									// Second since server creation
+							y: parseFloat(data[i].AccelZ)		// Thermistor reading
+						});
+						rollPoints.push({
+							x: i,									// Second since server creation
+							y: parseFloat(data[i].Roll)		// Thermistor reading
+						});
+						pitchPoints.push({
+							x: i,									// Second since server creation
+							y: parseFloat(data[i].Pitch)		// Thermistor reading
+						});
+					}
+
+					/* Limit how many points are shown */
+					while(tempPoints.length > dataLength){
+						tempPoints.shift();
+					}
+					while(xPoints.length > dataLength){
+						xPoints.shift();
+					}
+					while(yPoints.length > dataLength){
+						yPoints.shift();
+					}
+					while(zPoints.length > dataLength){
+						zPoints.shift();
+					}
+					while(rollPoints.length > dataLength){
+						rollPoints.shift();
+					}
+					while(pitchPoints.length > dataLength){
+						pitchPoints.shift();
+					}
+
+					console.log(tempPoints);	//for debugging
+
+
+					/* Dynamic multi series chart: https://canvasjs.com/javascript-charts/dynamic-live-multi-series-chart/ */
+					var chart1 = new CanvasJS.Chart("chartContainer1", {
+						exportEnabled: true,
+						zoomEnabled: true,
+						title:{
+							text: "Temperature"
+						},
+						axisX:{
+							title: "Time from Server Start (s)"
+						},
+						axisY:{
+							title: "Temp (C)"
+						},
+						toolTip:{
+							shared: true
+						},
+						legend:{
+							cursor:"pointer",
+						},
+						data: [{
+							type: "spline",
+							name: "Ultrasonic",
+							showInLegend: true,
+							dataPoints: tempPoints
+						}]
+					});
+
+					/* Dynamic multi series chart: https://canvasjs.com/javascript-charts/dynamic-live-multi-series-chart/ */
+					var chart2 = new CanvasJS.Chart("chartContainer2", {
+						exportEnabled: true,
+						zoomEnabled: true,
+						title:{
+							text: "Acceleration"
+						},
+						axisX:{
+							title: "Time from Server Start (s)"
+						},
+						axisY:{
+							title: "Acceleration (m/s/s)"
+						},
+						toolTip:{
+							shared: true
+						},
+						legend:{
+							cursor:"pointer",
+						},
+						data: [
+							{
+								type: "spline",
+								name: "X Acceleration",
+								showInLegend: true,
+								dataPoints: xPoints
+							},
+							{
+								type: "spline",
+								name: "Y Acceleration",
+								showInLegend: true,
+								dataPoints: yPoints
+							},
+							{
+								type: "spline",
+								name: "Z Acceleration",
+								showInLegend: true,
+								dataPoints: zPoints
+							}
+						]
+					});
+
+					/* Dynamic multi series chart: https://canvasjs.com/javascript-charts/dynamic-live-multi-series-chart/ */
+					var chart3 = new CanvasJS.Chart("chartContainer3", {
+						exportEnabled: true,
+						zoomEnabled: true,
+						title:{
+							text: "Position"
+						},
+						axisX:{
+							title: "Time from Server Start (s)"
+						},
+						axisY:{
+							title: "Tilt Degree"
+						},
+						toolTip:{
+							shared: true
+						},
+						legend:{
+							cursor:"pointer",
+						},
+						data: [
+							{
+								type: "spline",
+								name: "Roll",
+								showInLegend: true,
+								dataPoints: rollPoints
+							},
+							{
+								type: "spline",
+								name: "Pitch",
+								showInLegend: true,
+								dataPoints: pitchPoints
+							}
+						]
+					});
+
+					chart1.render();
+					chart2.render();
+					chart3.render();
+					//chart2.render();
+					//chart3.render();
+
+					/* Reset point arrays */
+					tempPoints = [];
+					xPoints = [];
+					yPoints = [];
+					zPoints = [];
+					rollPoints = [];
+					pitchPoints = [];
+
+				});
+
+				setTimeout(doPoll, 1000);
+			}
+
+		doPoll();
+
+		}
+
+
+	</script>
+	<script> 	// https://www.quora.com/What-is-the-simplest-way-to-make-an-HTML-button-communicate-with-a-Node-js-server
+	  $("form").submit(function(e) { 
+	    e.preventDefault(); 
+	    $.ajax({ 
+	      url: "/my-url?q=1", 
+	      data: {...}, 
+		  //type: "GET", // if you want to send data via the "data" property change this to "POST". This can be omitted otherwise 
+	      success: function(responseData) { 
+	      }, 
+	      error: console.error 
+	    }); 
+	  }); 
+	</script> 
+
+</head>
+<body>
+	<div id="chartContainer1" style="height: 300px; max-width: 920px; margin: 0px auto;"></div><br/>
+	<div id="chartContainer2" style="height: 300px; max-width: 920px; margin: 0px auto;"></div><br/>
+	<div id="chartContainer3" style="height: 300px; max-width: 920px; margin: 0px auto;"></div>
+	<br/>
+	<a href="http://ec444amfaller.zapto.org:64210/">Livestream Video</a>
+	<form action="/my-url"> 
+  		<button>Toggle LED</button> 
+	</form>
+</body>
+</html>

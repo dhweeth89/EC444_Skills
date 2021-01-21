@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/Users/rogerramesh/GitHub/Team7-Ramesh-Gupta-Faller/quest-2/code/esp32-code/build/CMakeFiles/bootloader
+/Users/rogerramesh/GitHub/Team7-Ramesh-Gupta-Faller/quest-2/code/esp32-code/build/CMakeFiles/bootloader.rule
+/Users/rogerramesh/GitHub/Team7-Ramesh-Gupta-Faller/quest-2/code/esp32-code/build/CMakeFiles/bootloader-complete.rule
+/Users/rogerramesh/GitHub/Team7-Ramesh-Gupta-Faller/quest-2/code/esp32-code/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/Users/rogerramesh/GitHub/Team7-Ramesh-Gupta-Faller/quest-2/code/esp32-code/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/Users/rogerramesh/GitHub/Team7-Ramesh-Gupta-Faller/quest-2/code/esp32-code/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/Users/rogerramesh/GitHub/Team7-Ramesh-Gupta-Faller/quest-2/code/esp32-code/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
+/Users/rogerramesh/GitHub/Team7-Ramesh-Gupta-Faller/quest-2/code/esp32-code/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/Users/rogerramesh/GitHub/Team7-Ramesh-Gupta-Faller/quest-2/code/esp32-code/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/Users/rogerramesh/GitHub/Team7-Ramesh-Gupta-Faller/quest-2/code/esp32-code/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule

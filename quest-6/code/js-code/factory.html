@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Remote Factory Control</title>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+    <script type="text/javascript">
+    window.onload = function(){
+
+      /* Global variables to hold datapoints */
+      var ir_points = [];
+      var us_points = [];
+      var therm_points = [];
+      var probe_points = [];
+
+      /* Global variables to hold presence time logs */
+      var lines = [];
+
+      /* Number of graph points visible at any one time */
+      var dataLength = 60;   // Number of points visible at any one time     https://canvasjs.com/javascript-charts/dynamic-spline-chart/
+
+      /* Receive data from server */
+      function doPoll(){
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        // Presence //////////////////////////////////////////////////////////////////////////////////////
+        $.get("/presence", function(data){
+
+          /* Parse data */
+          for(var i=0; i<data.length; i++){
+            ir_points.push({
+              x: i,
+              y: parseFloat(data[i].IR)
+            });
+            us_points.push({
+              x: i,
+              y: parseFloat(data[i].US)
+            });
+
+            lines.push("Index: " + i + " Timestamp: " + JSON.stringify(data[i].TIMESTAMP) + "<br />");
+          }
+
+          console.log("Data");
+          console.log(lines);
+
+          /* Limit how many points are shown */
+          while(ir_points.length > dataLength){
+           ir_points.shift();
+          }
+          while(us_points.length > dataLength){
+           us_points.shift();
+          }
+
+          /* Dynamic multi series chart: https://canvasjs.com/javascript-charts/dynamic-live-multi-series-chart/ */
+          var chart1 = new CanvasJS.Chart("chartContainer1", {
+            exportEnabled: true,
+            zoomEnabled: true,
+            title:{
+              text: "Distance Readings"
+            },
+            axisX:{
+              title: "Log Index"
+            },
+            axisY:{
+              title: "CM"
+            },
+            toolTip:{
+              shared: true
+            },
+            legend:{
+              cursor:"pointer",
+            },
+            data: [
+              {
+                type: "scatter",
+                name: "IR",
+                showInLegend: true,
+                dataPoints: ir_points
+              },
+              {
+                type: "scatter",
+                name: "US",
+                showInLegend: true,
+                dataPoints: us_points
+              }
+            ]
+          });
+
+          chart1.render();
+
+          /* Reset distance arrays */
+          ir_points = [];
+          us_points = [];
+
+          /* Transfer CSV lines to HTML body */
+          document.getElementById("distTime").innerHTML = lines;
+
+          // Reset lines
+          lines = [];
+
+        });
+
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        // Temperature ///////////////////////////////////////////////////////////////////////////////////
+
+         $.get("/temperature", function(data){
+
+          /* Parse data */
+          for(var i=0; i<data.length; i++){
+            therm_points.push({
+              x: i,
+              y: parseFloat(data[i].THERMISTOR)
+            });
+            probe_points.push({
+              x: i,
+              y: parseFloat(data[i].PROBE)
+            });
+
+            lines.push("Index: " + i + " Timestamp: " + JSON.stringify(data[i].TIMESTAMP) + "<br />");
+          }
+
+          console.log("Data");
+          console.log(lines);
+
+          /* Limit how many points are shown */
+          while(ir_points.length > dataLength){
+           ir_points.shift();
+          }
+          while(us_points.length > dataLength){
+           us_points.shift();
+          }
+
+
+          /* Dynamic multi series chart: https://canvasjs.com/javascript-charts/dynamic-live-multi-series-chart/ */
+          var chart2 = new CanvasJS.Chart("chartContainer2", {
+            exportEnabled: true,
+            zoomEnabled: true,
+            title:{
+              text: "Temperature Readings"
+            },
+            axisX:{
+              title: "Time from Server Start (s)"
+            },
+            axisY:{
+              title: "Temperature (C)"
+            },
+            toolTip:{
+              shared: true
+            },
+            legend:{
+              cursor:"pointer",
+            },
+            data: [
+              {
+                type: "spline",
+                name: "Thermistor",
+                showInLegend: true,
+                dataPoints: therm_points
+              },
+              {
+                type: "spline",
+                name: "Thermal Probe",
+                showInLegend: true,
+                dataPoints: probe_points
+              }
+            ]
+          });
+
+          chart2.render();
+
+          /* Reset temperature arrays */
+          therm_points = [];
+          probe_points = [];
+
+          /* Transfer CSV lines to HTML body */
+          document.getElementById("distTime").innerHTML = lines;
+
+        });
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        // Recursive revisualization /////////////////////////////////////////////////////////////////////
+        setTimeout(doPoll, 1000);
+      }
+
+      
+
+    // document.getElementById("csvLines").innerHTML = lines;
+    doPoll();
+
+    }
+
+
+  </script>
+
+    <script> 	// https://www.quora.com/What-is-the-simplest-way-to-make-an-HTML-button-communicate-with-a-Node-js-server
+      $("form").submit(function(e) { 
+        e.preventDefault(); 
+        $.ajax({ 
+          url: "/my-url?q=1", 
+          data: {...}, 
+          //type: "GET", // if you want to send data via the "data" property change this to "POST". This can be omitted otherwise 
+          success: function(responseData) { 
+          }, 
+          error: console.error 
+        }); 
+      }); 
+    </script>
+    
+  </head>
+    <body>
+      <div id="chartContainer1" style="height: 300px; max-width: 920px; margin: 0px auto;"></div><br/>
+      <div id="chartContainer2" style="height: 300px; max-width: 920px; margin: 0px auto;"></div><br/>
+        <br/>
+        <form action="/my-url"> 
+          <button>Fan Toggle</button> 
+        </form>
+
+        <p>,<span id= "distTime"></span></p>
+    </body>
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Remote Factory Control v2</title>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+    <script type="text/javascript">
+      /* Global variables to hold datapoints */
+      var ir_points = [];
+      var us_points = [];
+      var therm_points = [];
+      var probe_points = [];
+      var x_points = [];
+      var y_points = [];
+      var z_points = [];
+      var roll_points = [];
+      var pitch_points = [];
+
+      /* Global variable to hold presence time logs */
+      var lines = [];
+
+      /* Global variable to indicate if alert triggered on accelerometer */
+      var accAlert = 0;
+      var dealtWith = 0;
+
+      /* Number of graph points visible at any one time */
+      var dataLength = 60;   // Number of points visible at any one time     https://canvasjs.com/javascript-charts/dynamic-spline-chart/
+      window.onload = function(){
+
+      //////////////////////////////////////////////////////////////////////////////////////////////////
+      // Presence //////////////////////////////////////////////////////////////////////////////////////
+      function doPoll(){
+
+        $.get("/presence", function(data){
+
+          /* Parse data */
+          for(var i=0; i<data.length; i++){
+            ir_points.push({
+              x: i,
+              y: parseFloat(data[i].IR)
+            });
+            us_points.push({
+              x: i,
+              y: parseFloat(data[i].US)
+            });
+
+            if(data[i].TIMESTAMP){
+              lines.push("Index: " + i + "; Timestamp: " + JSON.stringify(data[i].TIMESTAMP) +  "; IR: " + JSON.stringify(data[i].IR) + "; US: " + JSON.stringify(data[i].US) +"<br />");
+            }
+          }
+
+          // console.log("Data");
+          // console.log(lines);
+
+          /* Limit how many points are shown */
+          while(ir_points.length > dataLength){
+           ir_points.shift();
+          }
+          while(us_points.length > dataLength){
+           us_points.shift();
+          }
+
+          /* Dynamic multi series chart: https://canvasjs.com/javascript-charts/dynamic-live-multi-series-chart/ */
+          var chart1 = new CanvasJS.Chart("chartContainer1", {
+            exportEnabled: true,
+            zoomEnabled: true,
+            title:{
+              text: "Proximity Readings"
+            },
+            axisX:{
+              title: "Log Index"
+            },
+            axisY:{
+              title: "Distance (cm)"
+            },
+            toolTip:{
+              shared: true
+            },
+            legend:{
+              cursor:"pointer",
+            },
+            data: [
+              {
+                type: "scatter",
+                name: "IR",
+                showInLegend: true,
+                dataPoints: ir_points
+              },
+              {
+                type: "scatter",
+                name: "US",
+                showInLegend: true,
+                dataPoints: us_points
+              }
+            ]
+          });
+
+          chart1.render();
+
+          /* Reset distance arrays */
+          ir_points = [];
+          us_points = [];
+
+          /* Transfer CSV lines to HTML body */
+          document.getElementById("distTime").innerHTML = lines;
+
+          // Reset lines
+          lines = [];
+
+        });
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        // Temperature ///////////////////////////////////////////////////////////////////////////////////
+        function doPoll2(){
+        
+
+          $.get("/temperature", function(data){
+
+            /* Parse data */
+            for(var i=0; i<data.length; i++){
+              therm_points.push({
+                x: i,
+                y: parseFloat(data[i].THERMISTOR)
+              });
+              probe_points.push({
+                x: i,
+                y: parseFloat(data[i].PROBE)
+              });
+
+            }
+
+            // console.log("Data");
+            // console.log(lines);
+
+            /* Limit how many points are shown */
+            while(therm_points.length > dataLength){
+             therm_points.shift();
+            }
+            while(probe_points.length > dataLength){
+             probe_points.shift();
+            }
+
+
+            /* Dynamic multi series chart: https://canvasjs.com/javascript-charts/dynamic-live-multi-series-chart/ */
+            var chart2 = new CanvasJS.Chart("chartContainer2", {
+              exportEnabled: true,
+              zoomEnabled: true,
+              title:{
+                text: "Temperature Readings"
+              },
+              axisX:{
+                title: "Time from Server Start (s)"
+              },
+              axisY:{
+                title: "Temperature (C)"
+              },
+              toolTip:{
+                shared: true
+              },
+              legend:{
+                cursor:"pointer",
+              },
+              data: [
+                {
+                  type: "spline",
+                  name: "Thermistor",
+                  showInLegend: true,
+                  dataPoints: therm_points
+                },
+                {
+                  type: "spline",
+                  name: "Thermal Probe",
+                  showInLegend: true,
+                  dataPoints: probe_points
+                }
+              ]
+            });
+
+            chart2.render();
+
+            /* Reset temperature arrays */
+            therm_points = [];
+            probe_points = [];
+
+          });
+        }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        // Acceleration //////////////////////////////////////////////////////////////////////////////////
+        function doPoll3(){
+          var fanOn = 0;  // Variable to indicate if fan is on or not
+
+          $.get("/accelerometer", function(data){
+
+            /* Parse data */
+            for(var i=0; i<data.length; i++){
+              x_points.push({
+                x: i,
+                y: parseFloat(data[i].XP)
+              });
+              y_points.push({
+                x: i,
+                y: parseFloat(data[i].YP)
+              });
+              z_points.push({
+                x: i,
+                y: parseFloat(data[i].ZP)
+              });
+              roll_points.push({
+                x: i,
+                y: parseFloat(data[i].ROLL)
+              });
+              pitch_points.push({
+                x: i,
+                y: parseFloat(data[i].PITCH)
+              });
+              fanOn = data[i].FAN_STATE;
+
+              if(dealtWith){
+                accelAlert = 0;
+              }
+              else{
+                accAlert = data[i].ALERT;
+              }
+            }
+
+            /* Limit how many points are shown */
+            while(x_points.length > dataLength){
+             x_points.shift();
+            }
+            while(y_points.length > dataLength){
+             y_points.shift();
+            }
+            while(z_points.length > dataLength){
+             z_points.shift();
+            }
+            while(roll_points.length > dataLength){
+             roll_points.shift();
+            }
+            while(pitch_points.length > dataLength){
+             pitch_points.shift();
+            }
+
+
+            /* Dynamic multi series chart: https://canvasjs.com/javascript-charts/dynamic-live-multi-series-chart/ */
+            var chart3 = new CanvasJS.Chart("chartContainer3", {
+              exportEnabled: true,
+              zoomEnabled: true,
+              title:{
+                text: "Acceleration Readings"
+              },
+              axisX:{
+                title: "Time from Server Start (s)"
+              },
+              axisY:{
+                title: "Acceleration (m/s/s)"
+              },
+              toolTip:{
+                shared: true
+              },
+              legend:{
+                cursor:"pointer",
+              },
+              data: [
+                {
+                  type: "spline",
+                  name: "X",
+                  showInLegend: true,
+                  dataPoints: x_points
+                },
+                {
+                  type: "spline",
+                  name: "Y",
+                  showInLegend: true,
+                  dataPoints: y_points
+                },
+                {
+                  type: "spline",
+                  name: "Z",
+                  showInLegend: true,
+                  dataPoints: z_points
+                }
+              ]
+            });
+
+            var chart4 = new CanvasJS.Chart("chartContainer4", {
+              exportEnabled: true,
+              zoomEnabled: true,
+              title:{
+                text: "Pitch and Roll Readings"
+              },
+              axisX:{
+                title: "Time from Server Start (s)"
+              },
+              axisY:{
+                title: "Degrees"
+              },
+              toolTip:{
+                shared: true
+              },
+              legend:{
+                cursor:"pointer",
+              },
+              data: [
+                {
+                  type: "spline",
+                  name: "Roll",
+                  showInLegend: true,
+                  dataPoints: roll_points
+                },
+                {
+                  type: "spline",
+                  name: "Pitch",
+                  showInLegend: true,
+                  dataPoints: pitch_points
+                }
+              ]
+            });
+
+            chart3.render();
+            chart4.render();
+
+            /* Reset acceleration arrays */
+            x_points = [];
+            y_points = [];
+            z_points = [];
+            roll_points = [];
+            pitch_points = [];
+
+            /* Send fan boolean to HTML */
+            console.log(fanOn);
+            if(fanOn == "1"){
+              document.getElementById("fanOn").innerHTML = "ON";
+            }
+            else{
+              document.getElementById("fanOn").innerHTML = "OFF";
+            }
+
+            /* Send alert boolean to HTML */
+            if(accAlert == "1" && !dealtWith){
+              document.getElementById("accelAlert").innerHTML = "HIGH";
+              // document.getElementById("accel").submit();  
+
+              // Wait to allow data to propogate
+              // var seconds = 2;
+              // var waitTill = new Date(new Date().getTime() + seconds * 1000);
+              // while(waitTill > new Date()){}
+
+              if(confirm("Accelerometer bumped!")){
+                accAlert = "0";
+                dealtWith = 1;
+
+                document.getElementById("accel").submit();  
+
+                // // Wait to allow data to propogate
+                // var seconds = 2;
+                // var waitTill = new Date(new Date().getTime() + seconds * 1000);
+                // while(waitTill > new Date()){}
+
+              }
+            }
+            else{
+              document.getElementById("accelAlert").innerHTML = "LOW";
+              dealtWith = 0;
+            }
+
+          });
+        }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        // Recursive revisualization /////////////////////////////////////////////////////////////////////
+        setTimeout(doPoll, 1000);
+        setTimeout(doPoll2, 1000);
+        setTimeout(doPoll3, 1000);
+
+      }
+
+      // Visualize stuff
+      doPoll();
+
+      }
+    </script>
+
+    <!-- Script to clear alert -->
+    <script>  // https://www.quora.com/What-is-the-simplest-way-to-make-an-HTML-button-communicate-with-a-Node-js-server
+      $("form").submit(function(e) { 
+        e.preventDefault(); 
+        $.ajax({ 
+          url: "/clearURL?q=1", 
+          data: {...}, 
+          //type: "GET", // if you want to send data via the "data" property change this to "POST". This can be omitted otherwise 
+          success: function(responseData) { 
+            accelAlert ^= 1;
+          }, 
+          error: console.error 
+        }); 
+      });
+    </script>
+
+    <!-- Script to toggle fan -->
+    <script> 	// https://www.quora.com/What-is-the-simplest-way-to-make-an-HTML-button-communicate-with-a-Node-js-server
+      $("form").submit(function(e) { 
+        e.preventDefault(); 
+        $.ajax({ 
+          url: "/toggleURL?q=1", 
+          data: {...}, 
+          //type: "GET", // if you want to send data via the "data" property change this to "POST". This can be omitted otherwise 
+          success: function(responseData) { 
+            fanOn ^= 1;
+          }, 
+          error: console.error 
+        }); 
+      });
+    </script>
+
+    
+  </head>
+    <body>
+
+      <!-- CSS for centering video -->
+      <!-- https://html-online.com/articles/image-align-center/ -->
+      <style>
+      .marginauto {
+          margin: 10px auto 20px;
+          display: block;
+      }
+      </style>
+
+      <!-- Live Video -->
+      <img class = "marginauto" style="-webkit-user-select: none;margin: auto;" src="http://ec444amfaller.zapto.org:8081/">
+      <p style="clear:both;">
+      <br/>
+
+      <!-- Graphs -->
+      <div id="chartContainer1" style="float:left; height: 300px; width: 48%; margin-right: 1%; margin-bottom: 0.5em;"></div><div id="chartContainer2" style="float:left; height: 300px; width: 48%; margin-right: 1%; margin-bottom: 0.5em;"></div>
+      <p style="clear:both;">
+      <br/>
+      <div id="chartContainer3" style="float:left; height: 300px; width: 48%; margin-right: 1%; margin-bottom: 0.5em;"></div><div id="chartContainer4" style="float:left; height: 300px; width: 48%; margin-right: 1%; margin-bottom: 0.5em;"></div>
+      <p style="clear:both;"><br/>
+      <br/>
+
+      <!-- Accelerometer Stuff -->
+      <header>
+        <h1>Accelerometer Alert</h1>
+        <p>Alert status: <span id= "accelAlert"></span></p>
+        <form id="accel" action="/clearURL"> 
+          <button hidden="true">Clear Alert</button> 
+        </form>
+      </header>
+
+      <!-- Fan Stuff -->
+      <header>
+        <h1>Remote Fan Control</h1>
+        <form action="/toggleURL"> 
+          <p>Current fan state: <span id= "fanOn"></span></p>
+          <button>Toggle</button> 
+        </form>
+      </header>
+
+      <!-- Proximity Log -->
+      <br/>
+      <header>
+        <h1>Proximity Log</h1>
+        <p>,<span id= "distTime"></span></p>
+      </header>
+    </body>
+</html>

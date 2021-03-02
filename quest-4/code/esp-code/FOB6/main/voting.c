@@ -1,7 +1,7 @@
 /* EC444 Quest04
 *  Electronic Voting
 *  November 9, 2020
-*  Author: Tony Faller */
+*  Author: Tony Faller, Shaivya Gupta, Roger Ramesh */
 
 /* Note: This code is partially sourced from https://github.com/espressif/esp-idf/tree/39f090a4f1dee4e325f8109d880bf3627034d839/examples/peripherals/adc */
 

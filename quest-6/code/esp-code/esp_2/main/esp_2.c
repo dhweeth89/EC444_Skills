@@ -1,7 +1,7 @@
 /* EC444 Quest06 
 *  ESP_2 Code
 *  December 4, 2020
-*  Authors: Tony Faller, Roger Ramesh */
+*  Authors: Tony Faller, Roger Ramesh, Shaivya Gupta */
 
 // Standard
 #include <stdio.h>

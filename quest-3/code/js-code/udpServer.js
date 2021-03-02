@@ -1,7 +1,7 @@
 /* EC444 Quest03
 *  JS UDP Server to communicate with ESP32 via LAN and save sensor readings to .csv file
 *  October 20, 2020
-*  Author: Tony Faller*/
+*  Author: Tony Faller, Shaivya Gupta, Roger Ramesh*/
 
 /* Note: requires npm modules express, csv-parser */
 

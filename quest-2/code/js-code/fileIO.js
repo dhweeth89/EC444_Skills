@@ -1,7 +1,7 @@
 /* EC444 Quest02
 *  JS Server to read serial data from ESP32 and save to .csv file
 *  October 5, 2020
-*  Author: Tony Faller  */
+*  Author: Tony Faller, Shaivya Gupta, Roger Ramesh  */
 
 /* Note: requires npm modules serialport, express, csv-parser */
 

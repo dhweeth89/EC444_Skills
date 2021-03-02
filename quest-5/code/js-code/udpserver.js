@@ -1,7 +1,7 @@
 /* EC444 Quest05
 *  JS UDP Server to communicate with ESP32 via LAN 
 *  November 30, 2020
-*  Author: Tony Faller*/
+*  Author: Tony Faller, Shaivya Gupta*/
 
 /* Requires npm module express */
 
